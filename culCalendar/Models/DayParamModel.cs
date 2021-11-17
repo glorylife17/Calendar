@@ -26,9 +26,9 @@ namespace culCalendar.Models
         public int Period { get; set; } = 1;
 
         /// <summary>
-        /// 包含日期
+        /// 包含 Weekly:星期 / Monthly:日 / Yearly: 日期
         /// </summary>
-        public string[] Days { get; set; }
+        public string[] Days { get; set; } = new string[0];
 
         /// <summary>
         /// 避開例假日
