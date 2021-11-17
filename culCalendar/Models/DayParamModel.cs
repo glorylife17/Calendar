@@ -18,7 +18,7 @@ namespace culCalendar.Models
         /// <summary>
         /// 循環類型
         /// </summary>
-        public RecurringType RecurringType { get; set; }
+        public RecurringType RecurringType { get; set; } = RecurringType.None;
 
         /// <summary>
         /// 間隔次數
@@ -33,17 +33,22 @@ namespace culCalendar.Models
         /// <summary>
         /// 避開例假日
         /// </summary>
-        public bool IsAvoidHoliday { get; set; }
+        public bool IsAvoidHoliday { get; set; } = false;
 
         /// <summary>
         /// 避開日期至平日類型
         /// </summary>
-        public AvoidType AvoidType { get; set; }
+        public AvoidType AvoidType { get; set; } = AvoidType.Ignore;
 
         /// <summary>
         /// 假日資料
         /// </summary>
         public DateTime[] Holidays { get; set; } = new DateTime[0];
+
+        /// <summary>
+        /// 避開無此日
+        /// </summary>
+        public bool IsIncludeNoday { get; set; } = false;
     }
 
 }

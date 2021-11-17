@@ -20,9 +20,150 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_ical()
+        public void Calendar_ical計畫月循環時間區間20210101至20211231每隔一月30日_回傳2月沒這天()
         {
-            Assert.Pass();
+            var testDate = new DateTime(2021, 2, 5);
+            _func().CurrentDate = testDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.MONTHLY,
+                StartDate = new DateTime(2021, 01, 01),
+                EndDate = new DateTime(2021, 12, 31),
+                Period = 1,
+                Days = new string[] { "3", "10", "30" },
+                IsAvoidHoliday = true,
+                IsIncludeNoday = false,
+                AvoidType = AvoidType.Previous,
+                Holidays = new DateTime[] { new DateTime(2021, 02, 28) }
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(2021,02,03),
+                new DateTime(2021,02,10),
+                //new DateTime(2021,02,28),   //假設0228為假日 0227(六) 往後算一天但遇到六日
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
+        public void Calendar_ical計畫月循環時間區間20210101至20211231每隔一月30日假設假日0228_回傳有0226()
+        {
+            var testDate = new DateTime(2021, 2, 5);
+            _func().CurrentDate = testDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.MONTHLY,
+                StartDate = new DateTime(2021, 01, 01),
+                EndDate = new DateTime(2021, 12, 31),
+                Period = 1,
+                Days = new string[] { "3", "10", "30" },
+                IsAvoidHoliday = true,
+                IsIncludeNoday = true,
+                AvoidType = AvoidType.Previous,
+                Holidays = new DateTime[] { new DateTime(2021, 02, 28) }
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(2021,02,03),
+                new DateTime(2021,02,10),
+                new DateTime(2021,02,26),   
+                //new DateTime(2021,02,28),   //假設0228為假日 0227(六) 往後算一天但遇到六日
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+
+        [Test]
+        public void Calendar_ical計畫月循環時間區間20210101至20211231每隔一月30日_回傳有0228()
+        {
+            var testDate = new DateTime(2021, 2, 5);
+            _func().CurrentDate = testDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.MONTHLY,
+                StartDate = new DateTime(2021, 01, 01),
+                EndDate = new DateTime(2021, 12, 31),
+                Period = 1,
+                Days = new string[] { "3", "10", "30" },
+                IsIncludeNoday = true
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(2021,02,03),
+                new DateTime(2021,02,10),
+                new DateTime(2021,02,28),   //假設1126為假日  往後算一天但遇到六日
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
+        public void Calendar_ical計畫月循環時間區間20211001至20211218每隔一月3日_回傳有1103()
+        {
+            _func().CurrentDate = nowDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.MONTHLY,
+                StartDate = new DateTime(2021, 10, 01),
+                EndDate = new DateTime(2021, 12, 31),
+                Period = 1,
+                Days = new string[] { "3", "10","26" }
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(2021,11,03),
+                new DateTime(2021,11,10),
+                new DateTime(2021,11,26),   //假設1126為假日  往後算一天但遇到六日
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
+        public void Calendar_ical計畫月循環時間區間20211001至20211218每隔一月沒設定日_Exception()
+        {
+            _func().CurrentDate = nowDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.MONTHLY,
+                StartDate = new DateTime(2021, 10, 01),
+                EndDate = new DateTime(2021, 12, 31),
+                Period = 1,
+            };
+
+            var res = Assert.Throws<Exception>(() => _func().getWorkdays(param));
+            StringAssert.Contains("沒有設定日子", res.Message);
         }
 
         [Test]
@@ -60,7 +201,6 @@ namespace calCalendar.Test
                 Assert.AreEqual(expect[i], res[i]);
             }
         }
-
 
         [Test]
         public void Calendar_ical計畫周循環時間區間20211001至20211218每隔二週星期一三五遇到假日為1126＿回傳往前1125 ()
