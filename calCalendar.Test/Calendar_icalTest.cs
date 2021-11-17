@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace calCalendar.Test
 {
-    public class Calendar_icalTest
+    public class Calendar_icalicalTest
     {
         private Calendar_ical _func() => new Calendar_ical();
         private DateTime nowDate = new DateTime(2021, 11, 11);
@@ -20,7 +20,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間20211001至20211218每隔三天假設假日為20211125與26＿回傳六日及假日往前算24為工作天不再多計算()
+        public void Calendar_ical計畫日循環時間區間20211001至20211218每隔三天假設假日為20211125與26＿回傳六日及假日往前算24為工作天不再多計算()
         {
             var testDay = new DateTime(2021, 11, 27);
             _func().CurrentDate = testDay;
@@ -59,7 +59,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間20211001至20211218每隔三天假設假日為20211126＿回傳遇到六日及假日往前算()
+        public void Calendar_ical計畫日循環時間區間20211001至20211218每隔三天假設假日為20211126＿回傳遇到六日及假日往前算()
         {
             var testDay = new DateTime(2021, 11, 27);
             _func().CurrentDate = testDay;
@@ -98,7 +98,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間20211001至20211218每隔三天＿回傳遇到六日往前算()
+        public void Calendar_ical計畫日循環時間區間20211001至20211218每隔三天＿回傳遇到六日往前算()
         {
             var testDay = new DateTime(2021, 11, 27);
             _func().CurrentDate = testDay;
@@ -136,7 +136,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間20211001至20211218每隔三天＿回傳遇到六日往後算()
+        public void Calendar_ical計畫日循環時間區間20211001至20211218每隔三天＿回傳遇到六日往後算()
         {
             var testDay = new DateTime(2021, 11, 27);
             _func().CurrentDate = testDay;
@@ -175,7 +175,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間20211001至20211218每隔三天假設1127為假日＿回傳忽略假日()
+        public void Calendar_ical計畫日循環時間區間20211001至20211218每隔三天假設1127為假日＿回傳忽略假日()
         {
             var testDay = new DateTime(2021, 11, 27);
             _func().CurrentDate = testDay;
@@ -214,7 +214,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間20211001至20211118每隔三天＿回傳共6天()
+        public void Calendar_ical計畫日循環時間區間20211001至20211118每隔三天＿回傳共6天()
         {
             var testDay = new DateTime(2021, 11, 03);
             _func().CurrentDate = testDay;
@@ -249,7 +249,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間20211001至20211231每隔三天＿回傳共10天()
+        public void Calendar_ical計畫日循環時間區間20211001至20211231每隔三天＿回傳共10天()
         {
             var testDay = new DateTime(2021, 11, 03);
             _func().CurrentDate = testDay;
@@ -288,7 +288,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間20211001至20211231每隔三天20251103＿Exception計畫時間不在該區間()
+        public void Calendar_ical計畫日循環時間區間20211001至20211231每隔三天20251103＿沒有天數()
         {
             var testDay = new DateTime(2025, 11, 03);
             _func().CurrentDate = testDay;
@@ -302,12 +302,13 @@ namespace calCalendar.Test
                 IsAvoidHoliday = false
             };
 
-            var res = Assert.Throws<Exception>(() => _func().getWorkdays(param));
-            StringAssert.Contains("計畫時間", res.Message);
+            var expect = 0;
+            var res =  _func().getWorkdays(param);
+            Assert.AreEqual(expect, res.Count);
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間1001至1231每隔三天1103＿回傳有工作()
+        public void Calendar_ical計畫日循環時間區間1001至1231每隔三天1103＿回傳有工作()
         {
             var testDay = new DateTime(2021, 11, 03);
             _func().CurrentDate = testDay;
@@ -328,7 +329,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫日循環時間區間0101至1201避開假日1113六_回傳沒這天()
+        public void Calendar_ical計畫日循環時間區間0101至1201避開假日1113六_回傳沒這天()
         {
             var testDay = new DateTime(2021, 11, 13);
             _func().CurrentDate = testDay;
@@ -346,7 +347,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫無循環回傳該月計畫中的時間區間1104至1107_回傳4天()
+        public void Calendar_ical計畫無循環回傳該月計畫中的時間區間1104至1107_回傳4天()
         {
             _func().CurrentDate = nowDate;
 
@@ -363,7 +364,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫無循環回傳11月天數_回傳30天()
+        public void Calendar_ical計畫無循環回傳11月天數_回傳30天()
         {
             _func().CurrentDate = nowDate;
 
@@ -380,7 +381,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計畫沒有結束日期_Exception()
+        public void Calendar_ical計畫沒有結束日期_Exception()
         {
             var param = new DayParamModel
             {
@@ -393,7 +394,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_計劃內容沒有開始日期_Exception()
+        public void Calendar_ical計劃內容沒有開始日期_Exception()
         {
             var param = new DayParamModel
             {
@@ -405,7 +406,7 @@ namespace calCalendar.Test
         }
 
         [Test]
-        public void Calendar_沒有計劃內容_Exception()
+        public void Calendar_ical沒有計劃內容_Exception()
         {
             var res = Assert.Throws<Exception>(() => _func().getWorkdays(null));
 
