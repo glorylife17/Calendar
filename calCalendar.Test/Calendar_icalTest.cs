@@ -20,6 +20,174 @@ namespace calCalendar.Test
         }
 
         [Test]
+        public void Calendar_ical計畫年循環時間區間20200101至20251231每隔二年20200306日_回傳20200303有這天()
+        {
+            var testDate = new DateTime(2022, 3, 1);
+            _func().CurrentDate = testDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.YEARLY,
+                StartDate = new DateTime(2020, 01, 01),
+                EndDate = new DateTime(2025, 12, 31),
+                Period = 1,
+                Days = new string[] { "1/8", "2/1", "2/10", "2/29", "3/6" },
+                IsIncludeNoday = true,
+                IsAvoidHoliday = true,
+                AvoidType = AvoidType.Previous,
+                Holidays = new DateTime[] { new DateTime(2022,3,4)}
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(testDate.Year,3,3)
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
+        public void Calendar_ical計畫年循環時間區間20200101至20251231每隔二年_回傳20200305有這天()
+        {
+            var testDate = new DateTime(2022, 3, 1);
+            _func().CurrentDate = testDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.YEARLY,
+                StartDate = new DateTime(2020, 01, 01),
+                EndDate = new DateTime(2025, 12, 31),
+                Period = 1,
+                Days = new string[] { "1/8", "2/1", "2/10", "2/29", "3/5" },
+                IsIncludeNoday = true
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(testDate.Year,3,5)
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
+        public void Calendar_ical計畫年循環時間區間20200101至20251231每隔二年_回傳20220229移到0228有這天()
+        {
+            var testDate = new DateTime(2022, 2, 1);
+            _func().CurrentDate = testDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.YEARLY,
+                StartDate = new DateTime(2020, 01, 01),
+                EndDate = new DateTime(2025, 12, 31),
+                Period = 1,
+                Days = new string[] { "1/8","2/1", "2/10", "2/29","3/5" },
+                IsIncludeNoday = true
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(testDate.Year,2,1),
+                new DateTime(testDate.Year,2,10),
+                new DateTime(testDate.Year,2,28),
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
+        public void Calendar_ical計畫年循環時間區間20200101至20251231每隔二年_回傳跳過20220229有這天()
+        {
+            var testDate = new DateTime(2022, 2, 1);
+            _func().CurrentDate = testDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.YEARLY,
+                StartDate = new DateTime(2020, 01, 01),
+                EndDate = new DateTime(2025, 12, 31),
+                Period = 1,
+                Days = new string[] { "2/1", "2/10", "2/29" },
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(testDate.Year,2,1),
+                new DateTime(testDate.Year,2,10),
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
+        public void Calendar_ical計畫年循環時間區間20200101至20251231每隔二年_回傳20220229有這天()
+        {
+            var testDate = new DateTime(2024, 2, 1);
+            _func().CurrentDate = testDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.YEARLY,
+                StartDate = new DateTime(2020, 01, 01),
+                EndDate = new DateTime(2025, 12, 31),
+                Period = 1,
+                Days = new string[] { "2/1", "2/10", "2/29" },
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(testDate.Year,2,1),
+                new DateTime(testDate.Year,2,10),
+                new DateTime(testDate.Year,2,29),
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
+        public void Calendar_ical計畫年循環時間區間20200101至20251231每隔二年_Exception()
+        {
+            _func().CurrentDate = nowDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.YEARLY,
+                StartDate = new DateTime(2020, 10, 01),
+                EndDate = new DateTime(2025, 12, 31),
+                Period = 2,
+            };
+
+            var res = Assert.Throws<Exception>(() => _func().getWorkdays(param));
+            StringAssert.Contains("沒有設定日期", res.Message);
+        }
+
+        [Test]
         public void Calendar_ical計畫月循環時間區間20210101至20211231每隔一月30日_回傳2月沒這天()
         {
             var testDate = new DateTime(2021, 2, 5);
@@ -87,7 +255,6 @@ namespace calCalendar.Test
                 Assert.AreEqual(expect[i], res[i]);
             }
         }
-
 
         [Test]
         public void Calendar_ical計畫月循環時間區間20210101至20211231每隔一月30日_回傳有0228()

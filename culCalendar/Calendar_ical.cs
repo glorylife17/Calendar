@@ -39,9 +39,67 @@ namespace culCalendar
                     return getWeekDays();
                 case RecurringType.MONTHLY:
                     return getMonthDays();
+                case RecurringType.YEARLY:
+                    return getYearDays();
             }
 
             return new List<DateTimeOffset>();
+        }
+
+        private List<DateTimeOffset> getYearDays()
+        {
+            var monthDays = getCurrentMonthPlanDays();
+            if (!monthDays.Any())
+                return new List<DateTimeOffset>();
+
+            if (_plan.Days == null || !_plan.Days.Any())
+                throw new Exception("計畫資訊沒有設定日期");
+
+            var rPattern = new RecurrencePattern();
+            rPattern.Frequency = Ical.Net.FrequencyType.Yearly;
+            rPattern.Interval = _plan.Period;
+            rPattern.Until = _plan.EndDate;
+            rPattern.FirstDayOfWeek = DayOfWeek.Sunday;
+
+            foreach (var day in _plan.Days)
+            {
+                if(DateTime.TryParse($"{CurrentDate.Year}/{day}", out DateTime cDate))
+                {
+                    rPattern.ByYearDay.Add(cDate.DayOfYear);
+                }
+            }
+            
+            var recComp = new Ical.Net.CalendarComponents.RecurringComponent();
+            recComp.RecurrenceRules.Add(rPattern);
+            recComp.Start = new Ical.Net.DataTypes.CalDateTime(_plan.StartDate);
+
+            var occurences = recComp.GetOccurrences(minCurrentMonthDate, maxCurrentMonthDate);
+            var result = occurences.Select(x => x.Period.StartTime.AsDateTimeOffset).ToList();
+
+            if (_plan.IsIncludeNoday)
+            {
+                foreach (var day in _plan.Days)
+                {
+                    if (!DateTime.TryParse($"{CurrentDate.Year}/{day}", out DateTime cDate))
+                    {
+                        var month = Convert.ToInt32($"{CurrentDate.Year}" + Convert.ToInt32(day.Split('/')[0]).ToString("00"));
+
+                        if (Convert.ToInt32(minCurrentMonthDate.ToString("yyyyMM")) <= month && month < Convert.ToInt32(maxCurrentMonthDate.ToString("yyyyMM")))
+                        {
+                            var lastDay = maxCurrentMonthDate.AddDays(-1);
+                            if (!result.Contains(lastDay))
+                                result.Add(lastDay);
+                        }
+                    }
+                }
+            }
+
+            if (_plan.IsAvoidHoliday)
+            {
+                result = filterSpecialDates(result);
+            }
+
+            return result;
         }
 
         private List<DateTimeOffset> getMonthDays()
@@ -244,7 +302,6 @@ namespace culCalendar
 
             return result;
         }
-
 
         /// <summary>
         /// 計算可工作日
