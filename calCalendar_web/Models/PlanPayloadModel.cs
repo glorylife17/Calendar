@@ -1,11 +1,16 @@
 ﻿using System;
-using System.Text.Json.Serialization;
 using culCalendar.Enums;
+using culCalendar.Models;
 
-namespace culCalendar.Models
+namespace calCalendar_web.Models
 {
-    public class DayParamModel
+    public class PlanPayloadModel
     {
+        /// <summary>
+        /// 索引
+        /// </summary>
+        public string Id { get; set; }
+
         /// <summary>
         /// 開始時間
         /// </summary>
@@ -55,6 +60,24 @@ namespace culCalendar.Models
         /// 排除日資料
         /// </summary>
         public DateTime[] RemoveDays { get; set; } = new DateTime[0];
+
+
+        public DayParamModel ToDayParam()
+        {
+            return new DayParamModel
+            {
+                StartDate = this.StartDate,
+                EndDate = this.EndDate,
+                RecurringType = this.RecurringType,
+                Period = this.Period,
+                Days = this.Days,
+                IsAvoidHoliday = this.IsAvoidHoliday,
+                AvoidType = this.AvoidType,
+                Holidays = this.Holidays,
+                IsIncludeNoday = this.IsIncludeNoday,
+                RemoveDays = this.RemoveDays
+            };
+        }
     }
 
 }
