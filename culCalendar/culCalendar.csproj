@@ -9,10 +9,14 @@
     <None Remove="Enums\" />
     <None Remove="Models\" />
     <None Remove="Ical.Net" />
+    <None Remove="Classes\" />
+    <None Remove="Abstracts\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Enums\" />
     <Folder Include="Models\" />
+    <Folder Include="Classes\" />
+    <Folder Include="Abstracts\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Ical.Net" Version="4.2.0" />

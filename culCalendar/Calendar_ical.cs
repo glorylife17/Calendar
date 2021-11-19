@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using culCalendar.Abstracts;
+using culCalendar.Classes;
 using culCalendar.Enums;
 using culCalendar.Models;
-using Ical.Net.CalendarComponents;
-using Ical.Net.DataTypes;
 
 namespace culCalendar
 {
@@ -18,10 +18,9 @@ namespace culCalendar
             set { currentDate = value; }
         }
 
-        private DateTime minCurrentMonthDate => new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
-        private DateTime maxCurrentMonthDate => minCurrentMonthDate.AddMonths(1);
-
-
+        private DateTime minSearchMonthDate => new DateTime(CurrentDate.Year, CurrentDate.Month, 1).AddMonths(-1);
+        private DateTime maxSearchMonthDate => minSearchMonthDate.AddMonths(3);
+    
         public List<DateTimeOffset> getWorkdays(DayParamModel plan)
         {
             _plan = plan;
@@ -29,300 +28,53 @@ namespace culCalendar
             if (NoSchedulePlan())
                 throw new Exception("計畫資訊不完整");
 
+            var monthDays = getCurrentMonthPlanDays();
+            if (!monthDays.Any())
+                return new List<DateTimeOffset>();
+
             switch (plan.RecurringType)
             {
                 case RecurringType.None:
-                    return getNoRecurringDays();
-                case RecurringType.DAILY:
-                    return getDailyDays();
-                case RecurringType.WEEKLY:
-                    return getWeekDays();
-                case RecurringType.MONTHLY:
-                    return getMonthDays();
-                case RecurringType.YEARLY:
-                    return getYearDays();
-            }
+                    return monthDays;
 
+                default:
+                    return getRecurringDays();
+            }
+        }
+
+        private List<DateTimeOffset> getRecurringDays()
+        {
+            var recurringDays = RecurringFactory(_plan.RecurringType);
+
+            if (recurringDays != null)
+            {
+                recurringDays.SetPlan(_plan);
+                recurringDays.SetSearchRange(CurrentDate);
+
+                return recurringDays.GetDays();
+            }
             return new List<DateTimeOffset>();
         }
 
-        private List<DateTimeOffset> getYearDays()
+        private ARecurringDays RecurringFactory(RecurringType type)
         {
-            var monthDays = getCurrentMonthPlanDays();
-            if (!monthDays.Any())
-                return new List<DateTimeOffset>();
-
-            if (_plan.Days == null || !_plan.Days.Any())
-                throw new Exception("計畫資訊沒有設定日期");
-
-            var rPattern = new RecurrencePattern();
-            rPattern.Frequency = Ical.Net.FrequencyType.Yearly;
-            rPattern.Interval = _plan.Period;
-            rPattern.Until = _plan.EndDate;
-            rPattern.FirstDayOfWeek = DayOfWeek.Sunday;
-
-            foreach (var day in _plan.Days)
+          
+            switch (type)
             {
-                if(DateTime.TryParse($"{CurrentDate.Year}/{day}", out DateTime cDate))
-                {
-                    rPattern.ByYearDay.Add(cDate.DayOfYear);
-                }
-            }
-            
-            var recComp = new Ical.Net.CalendarComponents.RecurringComponent();
-            recComp.RecurrenceRules.Add(rPattern);
-            recComp.Start = new Ical.Net.DataTypes.CalDateTime(_plan.StartDate);
+                case RecurringType.DAILY:
+                    return new RecurringDailyClass();
 
-            var occurences = recComp.GetOccurrences(minCurrentMonthDate, maxCurrentMonthDate);
-            var result = occurences.Select(x => x.Period.StartTime.AsDateTimeOffset).ToList();
+                case RecurringType.WEEKLY:
+                    return new RecurringWeeklyClass();
 
-            if (_plan.IsIncludeNoday)
-            {
-                foreach (var day in _plan.Days)
-                {
-                    if (!DateTime.TryParse($"{CurrentDate.Year}/{day}", out DateTime cDate))
-                    {
-                        var month = Convert.ToInt32($"{CurrentDate.Year}" + Convert.ToInt32(day.Split('/')[0]).ToString("00"));
+                case RecurringType.MONTHLY:
+                    return new RecurringMonthlyClass();
 
-                        if (Convert.ToInt32(minCurrentMonthDate.ToString("yyyyMM")) <= month && month < Convert.ToInt32(maxCurrentMonthDate.ToString("yyyyMM")))
-                        {
-                            var lastDay = maxCurrentMonthDate.AddDays(-1);
-                            if (!result.Contains(lastDay))
-                                result.Add(lastDay);
-                        }
-                    }
-                }
+                case RecurringType.YEARLY:
+                    return new RecurringYearlyClass();
             }
 
-            if (_plan.IsAvoidHoliday)
-            {
-                result = filterSpecialDates(result);
-            }
-
-            return result;
-        }
-
-        private List<DateTimeOffset> getMonthDays()
-        {
-            var monthDays = getCurrentMonthPlanDays();
-            if (!monthDays.Any())
-                return new List<DateTimeOffset>();
-
-            if (_plan.Days == null || !_plan.Days.Any())
-                throw new Exception("計畫資訊沒有設定日子");
-
-            var rPattern = new RecurrencePattern();
-            rPattern.Frequency = Ical.Net.FrequencyType.Monthly;
-            rPattern.Interval = _plan.Period;
-            rPattern.Until = _plan.EndDate;
-            rPattern.FirstDayOfWeek = DayOfWeek.Sunday;
-
-            foreach (var day in _plan.Days)
-            {
-                rPattern.ByMonthDay.Add(Convert.ToInt32(day));
-            }
-
-            var recComp = new Ical.Net.CalendarComponents.RecurringComponent();
-            recComp.RecurrenceRules.Add(rPattern);
-            recComp.Start = new Ical.Net.DataTypes.CalDateTime(_plan.StartDate);
-
-            var occurences = recComp.GetOccurrences(minCurrentMonthDate, maxCurrentMonthDate);
-            var result = occurences.Select(x => x.Period.StartTime.AsDateTimeOffset).ToList();
-
-            if (_plan.IsIncludeNoday)
-            {
-                var lastDay = maxCurrentMonthDate.AddDays(-1);
-                if (rPattern.ByMonthDay.Where(x => x > lastDay.Day).Any())
-                    result.Add(lastDay);
-            }
-
-            if (_plan.IsAvoidHoliday)
-            {
-                result = filterSpecialDates(result);
-            }
-
-            return result;
-        }
-
-        private List<DateTimeOffset> getWeekDays()
-        {
-            var monthDays = getCurrentMonthPlanDays();
-            if (!monthDays.Any())
-                return new List<DateTimeOffset>();
-
-            if (_plan.Days == null || !_plan.Days.Any())
-                throw new Exception("計畫資訊沒有設定星期");
-
-            var rPattern = new RecurrencePattern();
-            rPattern.Frequency = Ical.Net.FrequencyType.Weekly;
-            rPattern.Interval = _plan.Period;
-            rPattern.Until = _plan.EndDate;
-            rPattern.FirstDayOfWeek = DayOfWeek.Sunday;
-
-            foreach (var day in _plan.Days)
-            {
-                rPattern.ByDay.Add(new WeekDay((DayOfWeek)Convert.ToInt32(day)));
-            }
-
-            var recComp = new Ical.Net.CalendarComponents.RecurringComponent();
-            recComp.RecurrenceRules.Add(rPattern);
-            recComp.Start = new Ical.Net.DataTypes.CalDateTime(_plan.StartDate);
-
-            var occurences = recComp.GetOccurrences(minCurrentMonthDate, maxCurrentMonthDate);
-            var result = occurences.Select(x => x.Period.StartTime.AsDateTimeOffset).ToList();
-
-            if (_plan.IsAvoidHoliday)
-            {
-                result = filterSpecialDates(result);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// 取得沒循環的日子
-        /// </summary>
-        /// <returns></returns>
-        private List<DateTimeOffset> getNoRecurringDays()
-        {
-            var days = getCurrentMonthPlanDays();
-            return days;
-        }
-
-        public List<DateTimeOffset> getDailyDays()
-        {
-            var monthDays = getCurrentMonthPlanDays();
-            if (!monthDays.Any())
-                return new List<DateTimeOffset>();
-
-            var rPattern = new RecurrencePattern();
-            rPattern.Frequency = Ical.Net.FrequencyType.Daily;
-            rPattern.Interval = _plan.Period;
-            rPattern.Until = _plan.EndDate;
-
-            var recComp = new Ical.Net.CalendarComponents.RecurringComponent();
-            recComp.RecurrenceRules.Add(rPattern);
-            recComp.Start = new Ical.Net.DataTypes.CalDateTime(_plan.StartDate);
-
-            var occurences = recComp.GetOccurrences(minCurrentMonthDate, maxCurrentMonthDate);
-            var result = occurences.Select(x => x.Period.StartTime.AsDateTimeOffset).ToList();
-
-            if (_plan.IsAvoidHoliday)
-            {
-                result = filterSpecialDates(result);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// 過濾特殊日期
-        /// </summary>
-        /// <param name="dates"></param>
-        /// <returns></returns>
-        private List<DateTimeOffset> filterSpecialDates(List<DateTimeOffset> dates)
-        {
-            var result = new List<DateTimeOffset>();
-
-            switch (_plan.AvoidType)
-            {
-                case AvoidType.Ignore:
-                    result = fillterWeekends(dates);
-                    result = fillterHoliDays(dates);
-                    break;
-                case AvoidType.Next:
-                    result = fillterWeekends(dates, 1);
-                    result = fillterHoliDays(dates, 1);
-                    break;
-                case AvoidType.Previous:
-                    result = fillterWeekends(dates, -1);
-                    result = fillterHoliDays(dates, -1);
-                    break;
-            }
-
-            return dates.OrderBy(x => x).ToList();
-        }
-
-        /// <summary>
-        /// 過濾星期六與星期日
-        /// </summary>
-        /// <param name="dates"></param>
-        /// <returns></returns>
-        private List<DateTimeOffset> fillterWeekends(List<DateTimeOffset> dates, int flagDay = 0)
-        {
-            var result = dates;
-
-            var items = dates.Where(x =>
-                   x.DayOfWeek == DayOfWeek.Saturday
-                || x.DayOfWeek == DayOfWeek.Sunday
-                ).ToList();
-
-            foreach (var item in items)
-            {
-                result.Remove(item);
-
-                if (flagDay != 0)
-                {
-                    var workDay = getWorkDays(item.AddDays(flagDay), flagDay);
-                    if (!dates.Contains(workDay))
-                        result.Add(workDay);
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// 過濾假日
-        /// </summary>
-        /// <param name="dates"></param>
-        /// <param name="flagDay"></param>
-        /// <returns></returns>
-        private List<DateTimeOffset> fillterHoliDays(List<DateTimeOffset> dates, int flagDay = 0)
-        {
-            var result = dates;
-
-            if (_plan.Holidays != null && _plan.Holidays.Any())
-            {
-                var items = _plan.Holidays.Where(x => result.Contains(x)).ToList();
-
-                foreach (var item in items)
-                {
-                    result.Remove(item);
-
-                    if (flagDay != 0)
-                    {
-                        var workDay = getWorkDays(item.AddDays(flagDay), flagDay);
-                        if (!dates.Contains(workDay))
-                            result.Add(workDay);
-                    }
-                }
-
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// 計算可工作日
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="addDay"></param>
-        /// <returns></returns>
-        private DateTimeOffset getWorkDays(DateTimeOffset item, int addDay)
-        {
-            var result = item;
-            var holidays = _plan.Holidays.Select(x => (DateTimeOffset)x).ToList();
-
-            if (holidays.Contains(item)
-                || item.DayOfWeek == DayOfWeek.Saturday
-                || item.DayOfWeek == DayOfWeek.Sunday
-                )
-            {
-                result = getWorkDays(item.AddDays(addDay), addDay);
-            }
-
-            return result;
+            return null;
         }
 
         /// <summary>
@@ -349,8 +101,8 @@ namespace culCalendar
         /// <returns></returns>
         private List<DateTimeOffset> getCurrentMonthPlanDays()
         {
-            var min = (minCurrentMonthDate < _plan.StartDate) ? _plan.StartDate : minCurrentMonthDate;
-            var max = (maxCurrentMonthDate < _plan.EndDate) ? maxCurrentMonthDate : _plan.EndDate;
+            var min = (minSearchMonthDate < _plan.StartDate) ? _plan.StartDate : minSearchMonthDate;
+            var max = (maxSearchMonthDate < _plan.EndDate) ? maxSearchMonthDate : _plan.EndDate;
             var intervalDays = (max - min).TotalDays + 1;
 
             var dates = new List<DateTimeOffset>();
