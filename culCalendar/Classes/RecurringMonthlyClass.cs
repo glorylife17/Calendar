@@ -46,6 +46,7 @@ namespace culCalendar.Classes
             }
 
             result = fillterOtherDays(result);
+            
             return result;
         }
     }

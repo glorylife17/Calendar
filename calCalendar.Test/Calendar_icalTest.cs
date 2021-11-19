@@ -20,6 +20,45 @@ namespace calCalendar.Test
         }
 
         [Test]
+        public void Calendar_ical計算日循環跨月問題_回傳排除某一天1105()
+        {
+            _func().CurrentDate = nowDate;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.DAILY,
+                StartDate = new DateTime(2021, 10, 01),
+                EndDate = new DateTime(2021, 12, 31),
+                Period = 3,
+                IsAvoidHoliday = true,
+                AvoidType = AvoidType.Next,
+                RemoveDays = new DateTime[] { new DateTime(2021,11,15)}
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(2021,11,01),
+                new DateTime(2021,11,03),
+                new DateTime(2021,11,08),
+                new DateTime(2021,11,09),
+                new DateTime(2021,11,12),
+                //new DateTime(2021,11,15),
+                new DateTime(2021,11,18),
+                new DateTime(2021,11,22),
+                new DateTime(2021,11,24),
+                new DateTime(2021,11,29),
+                new DateTime(2021,11,30),
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
         public void Calendar_ical計算日循環跨月問題_回傳1031會移到1101()
         {
             _func().CurrentDate = nowDate;

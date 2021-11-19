@@ -49,6 +49,11 @@ namespace culCalendar.Models
         /// 避開無此日
         /// </summary>
         public bool IsIncludeNoday { get; set; } = false;
+
+        /// <summary>
+        /// 排除日資料
+        /// </summary>
+        public DateTime[] RemoveDays { get; set; } = new DateTime[0];
     }
 
 }

@@ -63,13 +63,15 @@ namespace culCalendar.Abstracts
         }
 
         /// <summary>
-        /// 過濾非本月的日子
+        /// 過濾非本月與排除的日子
         /// </summary>
         /// <param name="dates"></param>
         /// <returns></returns>
         protected List<DateTimeOffset> fillterOtherDays(List<DateTimeOffset> dates)
         {
             var result = dates.Where(x => _minCurrentDate <= x && x < _maxCurrentDate).ToList();
+            result = fillterRemoveDays(result);
+
             return result;
         }
 
@@ -78,7 +80,7 @@ namespace culCalendar.Abstracts
         /// </summary>
         /// <param name="dates"></param>
         /// <returns></returns>
-        protected List<DateTimeOffset> fillterWeekends(List<DateTimeOffset> dates, int flagDay = 0)
+        private List<DateTimeOffset> fillterWeekends(List<DateTimeOffset> dates, int flagDay = 0)
         {
             var result = dates;
 
@@ -108,7 +110,7 @@ namespace culCalendar.Abstracts
         /// <param name="dates"></param>
         /// <param name="flagDay"></param>
         /// <returns></returns>
-        protected List<DateTimeOffset> fillterHoliDays(List<DateTimeOffset> dates, int flagDay = 0)
+        private List<DateTimeOffset> fillterHoliDays(List<DateTimeOffset> dates, int flagDay = 0)
         {
             var result = dates;
 
@@ -128,6 +130,29 @@ namespace culCalendar.Abstracts
                     }
                 }
 
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 過濾移除的日子
+        /// </summary>
+        /// <param name="dates"></param>
+        /// <param name="flagDay"></param>
+        /// <returns></returns>
+        private List<DateTimeOffset> fillterRemoveDays(List<DateTimeOffset> dates)
+        {
+            var result = dates;
+
+            if (_plan.RemoveDays != null && _plan.RemoveDays.Any())
+            {
+                var items = _plan.RemoveDays.Where(x => result.Contains(x)).ToList();
+
+                foreach (var item in items)
+                {
+                    result.Remove(item);
+                }
             }
 
             return result;
