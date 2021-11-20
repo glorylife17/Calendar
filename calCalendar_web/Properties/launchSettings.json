@@ -19,6 +19,7 @@
     },
     "calCalendar_web": {
       "commandName": "Project",
+      "launchBrowser": true,
       "launchUrl": "weatherforecast",
       "applicationUrl": "https://localhost:45994;http://localhost:18174",
       "environmentVariables": {

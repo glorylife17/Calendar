@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "calCalendar.Test", "calCale
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "calCalendar_web", "calCalendar_web\calCalendar_web.csproj", "{F14B34AC-D97F-4DEF-9EF3-ACDD3D980814}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{5EB8DF64-0076-4655-BBCA-09D0E3A01FF4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{F14B34AC-D97F-4DEF-9EF3-ACDD3D980814}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F14B34AC-D97F-4DEF-9EF3-ACDD3D980814}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F14B34AC-D97F-4DEF-9EF3-ACDD3D980814}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EB8DF64-0076-4655-BBCA-09D0E3A01FF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EB8DF64-0076-4655-BBCA-09D0E3A01FF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EB8DF64-0076-4655-BBCA-09D0E3A01FF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EB8DF64-0076-4655-BBCA-09D0E3A01FF4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
