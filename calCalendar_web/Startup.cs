@@ -51,6 +51,12 @@ namespace calCalendar_web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+
+            if(Configuration.GetValue<string>("BasePath") is string basePath)
+            {
+                app.UsePathBase(basePath);
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -67,7 +73,7 @@ namespace calCalendar_web
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint($"{Configuration.GetValue<string>("BasePath")}/swagger/v1/swagger.json", "My API V1");
 
             });
 

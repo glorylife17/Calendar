@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   calcalendar_web:
-    image: ${DOCKER_REGISTRY-}calcalendarweb
+    image: ${DOCKER_REGISTRY-}aubix-calendar-service
     build:
       context: .
       dockerfile: calCalendar_web/Dockerfile
