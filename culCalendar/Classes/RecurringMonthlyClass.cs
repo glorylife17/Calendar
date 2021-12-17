@@ -33,11 +33,15 @@ namespace culCalendar.Classes
 
             if (_plan.IsIncludeNoday)
             {
-                var maxCurrentMonthDate = new DateTime(_currentDate.Year, _currentDate.Month, 1).AddMonths(1);
-                var lastDay = maxCurrentMonthDate.AddDays(-1);
+                for (int i = -1; i < 2; i++)
+                {
+                    var date = new DateTime(_currentDate.Year, _currentDate.Month, 1).AddMonths(i);
+                    var maxCurrentMonthDate = date.AddMonths(1);
+                    var lastDay = maxCurrentMonthDate.AddDays(-1);
 
-                if (_plan.Days.Where(x => Convert.ToInt32(x) > lastDay.Day).Any())
-                    result.Add(lastDay);
+                    if (_plan.Days.Where(x => Convert.ToInt32(x) > lastDay.Day).Any())
+                        result.Add(lastDay);
+                }
             }
 
             if (_plan.IsAvoidHoliday)

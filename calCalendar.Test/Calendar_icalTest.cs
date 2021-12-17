@@ -20,6 +20,38 @@ namespace calCalendar.Test
         }
 
         [Test]
+        public void Calendar_計畫月循環時間區間20210101至20250101每月31日無此日遇假日往後移至工作日＿回傳()
+        {
+            var testDay = new DateTime(2022, 5, 1);
+            _func().CurrentDate = testDay;
+
+            var param = new DayParamModel
+            {
+                RecurringType = RecurringType.MONTHLY,
+                StartDate = new DateTime(2021, 01, 01),
+                EndDate = new DateTime(2025, 01, 01),
+                Period = 1,
+                IsAvoidHoliday = true,
+                Days = new string[] { "30" },
+                IsIncludeNoday=true,
+                AvoidType = AvoidType.Next
+            };
+
+            var res = _func().getWorkdays(param);
+            var expect = new List<DateTimeOffset>()
+            {
+                new DateTime(2022,05,02),
+                new DateTime(2022,05,30),
+            };
+
+            Assert.AreEqual(expect.Count, res.Count);
+            for (int i = 0; i < expect.Count; i++)
+            {
+                Assert.AreEqual(expect[i], res[i]);
+            }
+        }
+
+        [Test]
         public void Calendar_ical計算日循環跨月問題_回傳排除某一天1105()
         {
             _func().CurrentDate = nowDate;
